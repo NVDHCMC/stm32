@@ -1,9 +1,0 @@
-/FreeRTOS/
-/HAL_Driver/
-/makefile
-/objects.list
-/objects.mk
-/sources.mk
-/src/
-/startup/
-/LITVE_Library/
