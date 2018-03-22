@@ -121,7 +121,6 @@ void raspi_spi_task()
 					flag = 1;
 				}
 				else {
-					rpi_spi_handle.timeout = 0;
 					HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
 					osDelay(500);
 				}

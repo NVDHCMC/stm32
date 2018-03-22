@@ -35,6 +35,7 @@
 #include <lime_mpu9255.h>
 #include <litve_adc.h>
 #include <raspi_spi.h>
+#include <UbloxGPS.h>
 
 /* Private function prototypes -------------------------------------------------*/
 extern void 				freertos_init(void);
@@ -200,7 +201,7 @@ void TIM5_IRQHandler(void)
   *
   * @notice unusable if not first initialized in NVIC.
   */
-__weak void SPI2_IRQHandler(void)
+void SPI2_IRQHandler(void)
 {
 	HAL_SPI_IRQHandler(&initHandles.SPI2_Handle);
 }
@@ -251,8 +252,6 @@ void SPI3_IRQHandler(void)
   */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* ADC_Handle)
 {
-	IRLF_ADC.ADC_channel_value[0] 		=	HAL_ADC_GetValue(ADC_Handle);
-	osSignalSet(ADC_READING_TaskHandle, limeSignalList.sADC_DONE);
 }
 
 /** @brief 	HAL_GPIO_EXTI_Callback
@@ -263,8 +262,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* ADC_Handle)
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	MDRIVE1.MOTOR.SpeedRef 		= 0x4000;
-	MDRIVE2.MOTOR.SpeedRef      = 0x4000;
 }
 
 /** @brief 	HAL_UART_TxCpltCallback
@@ -275,10 +272,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if ((huart->Instance == USART2) || (huart->Instance == USART1))
-	{
-		osSignalSet(SERIAL_COM_TaskHandle, limeSignalList.sFINISHED_PUBLISHING);
-	}
 }
 
 /*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -346,7 +339,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 	}
 	else if (hspi->Instance == SPI2)
 	{
-		//osSignalSet(SERIAL_COM_TaskHandle, rpi_signals.spi_complete_signal);
 #ifdef DEBUG
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 #endif
@@ -371,7 +363,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 #ifdef DEBUG
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 #endif
-		osSignalSet(SERIAL_COM_TaskHandle, rpi_signals.spi_complete_signal);
+    osSignalSet(IMU_READING_task, SPI2_COMPLETE_FLAG)
 	}
 	else if (hspi->Instance == MPU9255DRIVE.SPI_Handle.Instance)
 	{
@@ -411,6 +403,7 @@ int main(void)
 	/**/
 	//L3GD20DRIVE.INIT();
 	MPU9255DRIVE.INIT();
+
 
 	if (MPU9255DRIVE.READ_ID() != I_AM_MPU9255)
 	{

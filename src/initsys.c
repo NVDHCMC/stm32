@@ -7,6 +7,20 @@
   * @brief 	 Contain main kernel initialization, OS startup sequence
   * 		 and peripheral interrupt request handlers and callbacks
   *
+  * @pin_usage Define a list of used pin and their functions
+  *
+  *			PA2 	---------------------------------> USART2_TX
+  *			PA3 	---------------------------------> USART2_RX
+  *			PA9 	---------------------------------> USART1_TX
+  * 		PA10    ---------------------------------> USART1_RX
+  *         PD12    ---------------------------------> LED1
+  * 		PD13    ---------------------------------> LED2
+  *         PD14    ---------------------------------> LED3
+  *         PD15    ---------------------------------> LED4
+  *         PD12    ---------------------------------> LED1
+  *
+  *
+  *
   ******************************************************************************
 */
 
@@ -339,7 +353,7 @@ __weak void TIM10_INIT(void)
 __weak void USART1_INIT(void)
 {
 	initHandles.USART1_Handle.Instance 			= USART1;
-	initHandles.USART1_Handle.Init.BaudRate 	= 1382400;
+	initHandles.USART1_Handle.Init.BaudRate 	= 115200;
 	initHandles.USART1_Handle.Init.Mode 		= UART_MODE_TX_RX;
 	initHandles.USART1_Handle.Init.OverSampling	= UART_OVERSAMPLING_16;
 	initHandles.USART1_Handle.Init.WordLength 	= UART_WORDLENGTH_8B;
@@ -358,17 +372,14 @@ __weak void USART1_INIT(void)
     PA9     ------> USART1_TX
     PA10    ------> USART1_RX
     */
-    GPIO_InitStruct.Pin = 						GPIO_PIN_10;
+    GPIO_InitStruct.Pin = 						GPIO_PIN_9 | GPIO_PIN_10;
     GPIO_InitStruct.Mode = 						GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = 						GPIO_PULLUP;
     GPIO_InitStruct.Speed = 					GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = 				GPIO_AF7_USART1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = 						GPIO_PIN_6;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /* USART2 interrupt configuration */
+    /* USART1 interrupt configuration */
    	HAL_NVIC_SetPriority(USART1_IRQn, USART1_NVIC_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
 }

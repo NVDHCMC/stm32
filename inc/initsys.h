@@ -47,6 +47,12 @@ typedef enum
 	LIME_ERROR
 } LIME_Status;
 
+typedef enum
+{
+	SPI2_COMPLETE_FLAG = 1,
+	USART1_COMPLETE_FLAG
+} Event_Flags;
+
 /** @defgroup 	inithandle exported types
   * @{
   */

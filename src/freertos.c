@@ -36,6 +36,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
+#include <UbloxGPS.h>
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -43,8 +44,8 @@
 /* Private variables ---------------------------------------------------------*/
 osThreadId 		OPERATION_TaskHandle; 				/* Periodically blink LD15 to indicate operation */
 osThreadId 		SERIAL_COM_TaskHandle;				/* Serial communication task to communicate with the computer */
-osThreadId		PWM_UPDATE_TaskHandle;				/**/
-osThreadId 		ADC_READING_TaskHandle;				/**/
+osThreadId		GPS_UPDATE_TaskHandle;				/**/
+osThreadId 		INS_READING_TaskHandle;				/**/
 
 /* Private function prototypes -----------------------------------------------*/
 void 			freertos_init(void);
@@ -94,12 +95,16 @@ void SERIAL_COM_task(void const *argument)
   * @param 	argument
   * @retval none
   */
-void PWM_UPDATE_task(void const *argument)
+void GPS_UPDATE_task(void const *argument)
 {
 	//int init_once = 0;
+	osEvent evt;
 	for (;;)
 	{
-		osDelay(1000);
+		evt = osSignalWait(USART1_COMPLETE_FLAG, osWaitForever);
+		if ((evt.value.signals & USART1_COMPLETE_FLAG) == USART1_COMPLETE_FLAG) {
+			
+		}
 	}
 }
 
@@ -108,17 +113,19 @@ void PWM_UPDATE_task(void const *argument)
   * @param 	argument
   * @retval none
   */
-void ADC_READING_task(void const *argument)
+void IMU_READING_task(void const *argument)
 {
 	//int initonce = 0;
 	uint8_t data[20] = {0};
 	uint32_t task_wake_time = 0;
+	osEvent evt;
 	for (;;)
 	{
-		task_wake_time = osKernelSysTick();
-		MPU9255DRIVE.UPDATE(data);
-		raspi_spi_get_data(data);
-		osDelayUntil(&task_wake_time, 10);
+		evt = osSignalWait(SPI_COMPLETE_FLAG, osWaitForever);
+		if ((evt.value.signals & SPI_COMPLETE_FLAG) == SPI_COMPLETE_FLAG) {
+			MPU9255DRIVE.UPDATE(data);
+			raspi_spi_get_data(data);
+		}
 	}
 }
 
@@ -136,10 +143,10 @@ void freertos_init(void)
 	osThreadDef(uart2Com,  SERIAL_COM_task, osPriorityNormal, 0, 256);
 	SERIAL_COM_TaskHandle 			= osThreadCreate(osThread(uart2Com), NULL);
 
-	osThreadDef(PWM_UPDATE, PWM_UPDATE_task, osPriorityNormal, 0, 128);
+	osThreadDef(PWM_UPDATE, GPS_UPDATE_task, osPriorityHigh, 0, 128);
 	PWM_UPDATE_TaskHandle 		= osThreadCreate(osThread(PWM_UPDATE), NULL);
 
-	osThreadDef(ADC_READING, ADC_READING_task, osPriorityHigh, 0, 200);
+	osThreadDef(ADC_READING, IMU_READING_task, osPriorityHigh, 0, 200);
 	ADC_READING_TaskHandle 	 	= osThreadCreate(osThread(ADC_READING), NULL);
 
 	/* Allocate package structure memory */
